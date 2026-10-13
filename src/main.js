@@ -38,6 +38,7 @@ import { txt } from './core/helpers.js';
 import { pressed, released } from './core/input.js';
 import { update } from './game/update.js';
 import { initGL } from './render/scene.js';
+import { loadModels } from './render/models.js';
 import { applyQuality, loadQualitySetting, watchFps } from './core/quality.js';
 import { loadTheme } from './render/world.js';
 import { CHAPTERS } from './data/data.js';
@@ -76,22 +77,26 @@ function loop(now) {
   }
   requestAnimationFrame(loop);
 }
-try {
-  if (typeof THREE === 'undefined') throw new Error('no three');
-  loadQualitySetting();
-  initGL();
-  applyQuality();
-  loadTheme(CHAPTERS[0].theme).catch(() => {});
-} catch (e) {
-  console.error(e);
-  game.glFailed = true;
-  game.renderer = null;
+function start() {
+  try {
+    if (typeof THREE === 'undefined') throw new Error('no three');
+    loadQualitySetting();
+    initGL();
+    applyQuality();
+    loadTheme(CHAPTERS[0].theme).catch(() => {});
+  } catch (e) {
+    console.error(e);
+    game.glFailed = true;
+    game.renderer = null;
+  }
+  fit();
+  requestAnimationFrame(loop);
 }
-fit();
 if (document.fonts && document.fonts.load) {
   document.fonts.load('16px "Press Start 2P"').catch(() => {});
 }
-requestAnimationFrame(loop);
+// Blender models (src/models/*.glb) are loaded before the first 3D scene is built
+loadModels().then(start, start);
 
 // Handle for tests and debugging in the browser console: window.DE.game.P etc.
 import { setupChapter } from './game/flow.js';

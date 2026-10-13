@@ -24,6 +24,8 @@ src/
   render/        3D-Grafik: Figuren, Posen, Kamera, Welt-Grundgerüst
   ui/            Lebensleisten, Texte, Menüs
   worlds/        eine Datei pro Welt (Wald, Wüste, Basis, Schloss, Himmel)
+  models/        Figuren aus Blender (.glb)
+blender/         Blender-Dateien und das Skript, das Goki baut
 ```
 
 Damit das Spiel wachsen kann, ohne den Browser zu überlasten:
@@ -31,6 +33,8 @@ Damit das Spiel wachsen kann, ohne den Browser zu überlasten:
 - **Welten werden einzeln nachgeladen.** Jede Welt in `src/worlds/` ist eine eigene Datei, die erst geladen wird, wenn das Kapitel startet. Das nächste Kapitel wird im Hintergrund schon vorgeladen.
 - **Alte Welten werden freigegeben.** Beim Kapitelwechsel wird der Grafikspeicher der alten Welt und verschwundener Gegner wieder freigegeben.
 - **Grafikstufe passt sich an.** Läuft das Spiel zu langsam, schaltet es automatisch auf „Mittel“ und dann „Niedrig“ (weniger Schatten, geringere Auflösung). Mit der Taste **G** oder `?q=hoch|mittel|niedrig` in der Adresse wählt man selbst.
+
+**Eigene 3D-Figuren aus Blender:** siehe [docs/BLENDER.md](docs/BLENDER.md). Son Goki ist schon ein Blender-Modell (`blender/goki.blend`).
 
 Eine neue Welt hinzufügen: Datei in `src/worlds/` anlegen (wie `forest.js`), in `THEME_LOADERS` und `THEME3` in `src/render/world.js` eintragen und das Kapitel in `src/data/data.js` darauf zeigen lassen.
 

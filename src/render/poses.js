@@ -2,6 +2,7 @@ import { game } from '../state.js';
 import { clamp } from '../core/helpers.js';
 import { FACE } from './materials.js';
 import { FOOT, SHN, TH } from './humanoid.js';
+import { syncModel } from './models.js';
 
 // ---------- poses ----------
 function poseHum(name, t, x) {
@@ -446,8 +447,11 @@ function applyRig(r, f, T, k) {
       c[key] += vl[key];
     }
   }
-  const fy = (h, kn) => -(TH * Math.cos(h) + SHN * Math.cos(h + kn)) - FOOT;
-  const tgY = T.air || c.lie > 0.3 ? r.hipY + c.by * 1.6 : -Math.min(fy(c.l0, c.l2), fy(c.m0, c.m2)) + Math.min(0, c.by) * 0.15;
+  const th = r.TH || TH,
+    shn = r.SHN || SHN,
+    foot = r.FOOT || FOOT;
+  const fy = (h, kn) => -(th * Math.cos(h) + shn * Math.cos(h + kn)) - foot;
+  const tgY = T.air || c.lie > 0.3 ? r.hipY + c.by * 1.6 : -Math.min(fy(c.l0, c.l2), fy(c.m0, c.m2)) - (r.legY || 0) + Math.min(0, c.by) * 0.15;
   c.bY = c.bY === undefined || k >= 1 ? tgY : c.bY + (tgY - c.bY) * 0.45;
   r.body.position.y = c.bY;
   r.body.rotation.z = c.sway;
@@ -479,6 +483,7 @@ function applyRig(r, f, T, k) {
     r.tail.rotation.z = Math.sin(game.frame * 0.09) * 0.4;
   }
   if (r.root.userData.cape) r.root.userData.cape.rotation.x = 0.18 + Math.abs(c.lean) * 0.4 + Math.sin(game.frame * 0.1) * 0.05;
+  if (r.model) syncModel(r);
 }
 // ---------- other rigs ----------
 

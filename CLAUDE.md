@@ -10,3 +10,5 @@
 - Browser console / tests: `window.DE.game` exposes state, `DE.setupChapter(i, atBoss)` jumps to a chapter.
 - Builds: `npm run build` (GitHub Pages, chunked) and `npm run build:single` (one self-contained HTML file, used for the Claude artifact).
 - Playwright headless needs `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`; it runs at about 5 FPS, so pass `?q=hoch` when comparing screenshots (otherwise auto-quality drops the level).
+- Blender models: `src/models/<LOOKS key>.glb` replaces that built-in figure (loaded in `src/render/models.js` before the first scene is built). The game's procedural poses drive the model: `makeModelRig` builds empty driver joints at the model's bone positions, `applyRig` poses them as usual, `syncModel` copies the rotations onto the bones (limbs get a rest correction, so A-pose/T-pose both work). Bone names and material-name conventions are in `docs/BLENDER.md`.
+- `blender/build_goki.py` generates Goki (`goki.blend` + `src/models/goki.glb`). Run it with Blender, or headless with the `bpy` pip package (Python 3.13): `python blender/build_goki.py`.

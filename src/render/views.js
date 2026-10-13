@@ -10,6 +10,7 @@ import { makeHumanoid } from './humanoid.js';
 import { applyRig, poseHum } from './poses.js';
 import { makeAirship, makeEgg, makeFlyer, makePlane, makeScorp, makeWolf } from './rigs.js';
 import { wx, wy } from './world.js';
+import { syncModel } from './models.js';
 
 // ---------- views ----------
 function getView(o, factory) {
@@ -551,6 +552,7 @@ function syncGhosts() {
           v[k].hip.rotation.copy(src[k].hip.rotation);
           v[k].kn.rotation.copy(src[k].kn.rotation);
         }
+        if (v.model) syncModel(v);
       }
       v.root.position.set(wx(gh.x), wy(game.mode === 'shmup' ? gh.y - 4 : gh.y), -0.1);
     }

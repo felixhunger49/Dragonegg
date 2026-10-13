@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { game } from '../state.js';
 import { clamp } from '../core/helpers.js';
 import { Gp, M, aim, bm, bx, cap, capT, cone, cyl, geo, sph, tmF, tor } from './materials.js';
+import { makeModelRig } from './models.js';
 
 // ---------- humanoid rig ----------
 const HC = .26,
@@ -49,6 +50,10 @@ const TH = .4,
   GS = .84,
   HS = .66;
 function makeHumanoid(L, opts) {
+  if (L.model) {
+    const mr = makeModelRig(L);
+    if (mr) return mr;
+  }
   opts = opts || {};
   const root = new THREE.Group(),
     inner = Gp(root);
@@ -501,4 +506,4 @@ function shadeHex(hex, k) {
 }
 // ---------- poses ----------
 
-export { FOOT, SHN, TH, makeHumanoid };
+export { FOOT, GS, HIPY, SHN, TH, makeHumanoid };
