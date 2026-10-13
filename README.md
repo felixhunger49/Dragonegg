@@ -34,7 +34,7 @@ Damit das Spiel wachsen kann, ohne den Browser zu überlasten:
 - **Alte Welten werden freigegeben.** Beim Kapitelwechsel wird der Grafikspeicher der alten Welt und verschwundener Gegner wieder freigegeben.
 - **Grafikstufe passt sich an.** Läuft das Spiel zu langsam, schaltet es automatisch auf „Mittel“ und dann „Niedrig“ (weniger Schatten, geringere Auflösung). Mit der Taste **G** oder `?q=hoch|mittel|niedrig` in der Adresse wählt man selbst.
 
-**Eigene 3D-Figuren aus Blender:** siehe [docs/BLENDER.md](docs/BLENDER.md). Son Goki ist schon ein Blender-Modell (`blender/goki.blend`).
+**Eigene 3D-Figuren aus Blender:** siehe [docs/BLENDER.md](docs/BLENDER.md). Alle Figuren sind schon Blender-Modelle (`blender/*.blend`).
 
 Eine neue Welt hinzufügen: Datei in `src/worlds/` anlegen (wie `forest.js`), in `THEME_LOADERS` und `THEME3` in `src/render/world.js` eintragen und das Kapitel in `src/data/data.js` darauf zeigen lassen.
 

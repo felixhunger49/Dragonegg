@@ -3,7 +3,7 @@
 Das Spiel kann Figuren aus Blender laden. Du musst sie **nur modellieren und mit Knochen versehen**, nicht animieren:
 Laufen, Schlagen, Treten, Springen, Ducken und alle Spezialattacken übernimmt das Spiel selbst.
 
-Als Vorlage gibt es Son Goki: **`blender/goki.blend`** in Blender öffnen, anschauen, verändern.
+Alle 14 Figuren sind schon Blender-Modelle: Die Dateien liegen in `blender/` (z. B. `goki.blend`) und lassen sich in Blender öffnen, anschauen und verändern.
 
 ## 1. Welche Datei ersetzt welche Figur?
 

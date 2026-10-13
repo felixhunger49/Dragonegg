@@ -4,6 +4,7 @@ import { ROWS } from '../core/setup.js';
 import { clamp, hsh, rng } from '../core/helpers.js';
 import { Gp, M, bm, bx, cap, cone, ctex, cyl, ico, sph, spr } from './materials.js';
 import { decorate } from './decorate.js';
+import { loadModels } from './models.js';
 
 // ---------- world themes: loaded on demand ----------
 // Each theme (src/worlds/<name>.js) holds its own textures, scenery and props.
@@ -254,17 +255,19 @@ function buildWorld(theme, lv) {
 }
 // Show the world for a chapter: build it now if its theme is loaded,
 // otherwise load it first (the game waits while game.worldLoading is set).
-let worldToken = 0;
+let worldToken = 0,
+  modelsDone = false;
 function showWorld(theme, lv) {
   const token = ++worldToken;
-  if (loaded[theme]) {
+  const models = loadModels();
+  if (loaded[theme] && modelsDone) {
     game.worldLoading = null;
     buildWorld(theme, lv);
     return;
   }
   game.worldLoading = theme;
   clearGroup(game.worldG);
-  loadTheme(theme).then(() => {
+  Promise.all([loadTheme(theme), models.then(() => modelsDone = true)]).then(() => {
     if (token !== worldToken) return;
     game.worldLoading = null;
     buildWorld(theme, lv);

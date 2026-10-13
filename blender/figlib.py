@@ -394,13 +394,19 @@ class Fig:
     def export(self, out_glb, out_blend):
         for o in bpy.context.view_layer.objects:
             o.select_set(False)
-        body = self.bodyob
-        body.select_set(True)
-        self.rig.select_set(True)
-        bpy.context.view_layer.objects.active = self.rig
-        bpy.ops.object.parent_set(type='ARMATURE_AUTO')
-        body.select_set(False)
-        self.rig.select_set(False)
+        body = getattr(self, 'bodyob', None)
+        if body:
+            body.select_set(True)
+            self.rig.select_set(True)
+            bpy.context.view_layer.objects.active = self.rig
+            bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+            body.select_set(False)
+            self.rig.select_set(False)
+        else:  # only rigid parts (robots): their vertex groups already say which bone moves them
+            body = self.parts.pop(0)
+            md = body.modifiers.new('Armature', 'ARMATURE')
+            md.object = self.rig
+            body.parent = self.rig
         for p in self.parts:
             p.select_set(True)
         body.select_set(True)
@@ -411,4 +417,5 @@ class Fig:
         os.makedirs(os.path.dirname(out_glb), exist_ok=True)
         bpy.ops.wm.save_as_mainfile(filepath=out_blend)
         bpy.ops.export_scene.gltf(filepath=out_glb, export_format='GLB', export_yup=True, export_skins=True,
-                                  export_animations=False, export_apply=False, export_materials='EXPORT', use_selection=False)
+                                  export_animations=False, export_apply=False, export_materials='EXPORT', use_selection=False,
+                                  export_texcoords=False)

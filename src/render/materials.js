@@ -17,6 +17,7 @@ function freeGeometries(root) {
   root.traverse(o => {
     if (o.isInstancedMesh) o.dispose();
     if (o.geometry && !o.isSprite && !o.geometry.userData.shared) o.geometry.dispose();
+    if (o.isSkinnedMesh) o.skeleton.dispose(); // bone texture
   });
 }
 function geo(k, fn) {

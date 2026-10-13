@@ -95,12 +95,13 @@ function start() {
 if (document.fonts && document.fonts.load) {
   document.fonts.load('16px "Press Start 2P"').catch(() => {});
 }
-// Blender models (src/models/*.glb) are loaded before the first 3D scene is built
-loadModels().then(start, start);
+// Blender models: the heroes are loaded before the first 3D scene is built, enemies and bosses
+// follow in the background (a chapter waits for them like it waits for its world)
+loadModels(ORDER).then(start, start).then(() => loadModels());
 
 // Handle for tests and debugging in the browser console: window.DE.game.P etc.
 import { setupChapter } from './game/flow.js';
-import { ORDER } from './data/data.js';
+import { LOOKS, ORDER } from './data/data.js';
 import { damageBoss } from './game/boss.js';
 import { keys } from './core/input.js';
-window.DE = { game, setupChapter, ORDER, damageBoss, pressed, keys };
+window.DE = { game, setupChapter, ORDER, LOOKS, damageBoss, pressed, keys };

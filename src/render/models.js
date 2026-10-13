@@ -22,18 +22,18 @@ const LIMB = new Set(['upperarm_L', 'forearm_L', 'upperarm_R', 'forearm_R', 'thi
 const FILES = import.meta.glob('../models/*.glb', { query: '?url', import: 'default', eager: true });
 const MODELS = {}, PREP = {};
 
-function loadModels() {
-  const loader = new GLTFLoader();
-  return Promise.all(Object.entries(FILES).map(([p, url]) => {
-    const key = p.split('/').pop().replace(/\.glb$/, '');
-    return loader.loadAsync(url).then(g => {
-      g.scene.traverse(o => {
-        if (o.geometry) o.geometry.userData.shared = true;
-      });
-      MODELS[key] = g.scene;
-      if (LOOKS[key]) LOOKS[key].model = key;
-    }, e => console.error('Modell konnte nicht geladen werden:', p, e));
-  }));
+// Load the models for some LOOKS keys (all when none given). Each file is fetched only once;
+// a model that fails to load just leaves the built-in figure in place.
+const loader = new GLTFLoader(), pending = {};
+function loadModels(keys) {
+  const list = Object.entries(FILES).map(([p, url]) => [p.split('/').pop().replace(/\.glb$/, ''), url]).filter(([k]) => !keys || keys.includes(k));
+  return Promise.all(list.map(([key, url]) => pending[key] || (pending[key] = loader.loadAsync(url).then(g => {
+    g.scene.traverse(o => {
+      if (o.geometry) o.geometry.userData.shared = true;
+    });
+    MODELS[key] = g.scene;
+    if (LOOKS[key]) LOOKS[key].model = key;
+  }, e => console.error('Modell konnte nicht geladen werden:', key, e)))));
 }
 
 // Measure a model once: scale, rest pose of every bone in rig space, joint offsets for the driver rig
@@ -133,10 +133,13 @@ function makeModelRig(L) {
       if (o.isSkinnedMesh) skinned.push(o);
     }
   });
+  // the loader gives every material part its own skeleton; one shared skeleton means one bone update per frame
+  const sk = skinned.length ? skinned[0].skeleton : null;
+  for (const o of skinned) if (o.skeleton !== sk) o.bind(sk, o.bindMatrix);
   for (const o of skinned) {
     if (!o.userData.line) continue;
     const ol = new THREE.SkinnedMesh(o.geometry, outlineMat(0.026 / pr.ns));
-    ol.bind(o.skeleton, o.bindMatrix);
+    ol.bind(sk, o.bindMatrix);
     ol.frustumCulled = false;
     o.parent.add(ol);
   }
