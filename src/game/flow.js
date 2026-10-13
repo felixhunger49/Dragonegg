@@ -4,11 +4,11 @@ import { clamp, rng } from '../core/helpers.js';
 import { pressed } from '../core/input.js';
 import { playSong, sfx } from '../audio/audio.js';
 import { CHAPTERS, STORY } from '../data/data.js';
-import { EGGS_BEFORE, writeSave } from './state.js';
+import { EGGS_BEFORE, writeSave } from './defaults.js';
 import { buildLevel } from './level.js';
 import { newPlayer } from './player.js';
 import { bossToIdle, makeBoss, setTimeoutFrames } from './boss.js';
-import { buildWorld } from '../render/world.js';
+import { loadTheme, showWorld } from '../render/world.js';
 
 // ================= FLOW =================
 function dlgStart(lines, done) {
@@ -87,7 +87,12 @@ function setupChapter(i, atBoss) {
     game.bgX = 0;
     game.shRnd = rng(77);
   }
-  if (game.renderer) buildWorld(ch.theme, game.L);
+  if (game.renderer) {
+    showWorld(ch.theme, game.L);
+    // fetch the next chapter's world in the background so it is ready in time
+    const next = CHAPTERS[i + 1];
+    if (next) loadTheme(next.theme).catch(() => {});
+  }
   playSong(atBoss ? 'boss' : ch.music);
   game.state = 'play';
   game.card = atBoss ? null : {

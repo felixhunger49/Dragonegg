@@ -4,7 +4,7 @@ import { clamp } from '../core/helpers.js';
 import { pressed } from '../core/input.js';
 import { playSong, sfx } from '../audio/audio.js';
 import { CHAPTERS, ENDING, ORDER, STORY } from '../data/data.js';
-import { EGGS_BEFORE, introShown, writeSave } from './state.js';
+import { EGGS_BEFORE, introShown, writeSave } from './defaults.js';
 import { updParts } from './particles.js';
 import { updPlayer } from './player.js';
 import { updEnemy } from './enemies.js';
@@ -19,6 +19,7 @@ import { updVsArena, updVsWin } from '../ui/hud.js';
 game.slowTick = 0;
 function update() {
   game.frame++;
+  if (game.state === 'play' && game.worldLoading) return; // wait for the world to finish loading
   if (game.state === 'title') {
     updTitle();
     return;

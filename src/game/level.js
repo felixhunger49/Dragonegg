@@ -1,7 +1,7 @@
 import { ROWS, TS } from '../core/setup.js';
 import { clamp, rng } from '../core/helpers.js';
 import { CHAPTERS, EN } from '../data/data.js';
-import { EGGS_BEFORE } from './state.js';
+import { EGGS_BEFORE } from './defaults.js';
 
 // ================= LEVEL =================
 function buildLevel(ch) {

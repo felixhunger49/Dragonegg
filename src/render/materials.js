@@ -7,10 +7,23 @@ import { game } from '../state.js';
 const FACE = 1.0;
 const GEO = {},
   MATS = {};
+// Cached geometries/materials are reused everywhere; mark them so world cleanup never frees them
+function shared(o) {
+  o.userData.shared = true;
+  return o;
+}
+// Free the GPU buffers of all geometries below root that are not shared cache entries
+function freeGeometries(root) {
+  root.traverse(o => {
+    if (o.isInstancedMesh) o.dispose();
+    if (o.geometry && !o.isSprite && !o.geometry.userData.shared) o.geometry.dispose();
+  });
+}
 function geo(k, fn) {
   let g2 = GEO[k];
   if (!g2) {
     g2 = GEO[k] = fn();
+    g2.userData.shared = true;
     g2.computeBoundingSphere();
   }
   return g2;
@@ -42,29 +55,29 @@ function ico(r, d = 1) {
 game.MAT_OVERRIDE = null;
 function tm(c) {
   const k = 't' + c;
-  return MATS[k] || (MATS[k] = new THREE.MeshToonMaterial({
+  return MATS[k] || (MATS[k] = shared(new THREE.MeshToonMaterial({
     color: c,
     gradientMap: game.GRAD
-  }));
+  })));
 }
 game.FABRIC = null;
 function tmF(c) {
   const k = 'f' + c;
-  return MATS[k] || (MATS[k] = new THREE.MeshToonMaterial({
+  return MATS[k] || (MATS[k] = shared(new THREE.MeshToonMaterial({
     color: c,
     gradientMap: game.GRAD,
     map: game.FABRIC
-  }));
+  })));
 }
 function bm(c, op = 1, add = false) {
   const k = 'b' + c + op + add;
-  return MATS[k] || (MATS[k] = new THREE.MeshBasicMaterial({
+  return MATS[k] || (MATS[k] = shared(new THREE.MeshBasicMaterial({
     color: c,
     transparent: op < 1 || add,
     opacity: op,
     blending: add ? THREE.AdditiveBlending : THREE.NormalBlending,
     depthWrite: !(op < 1 || add)
-  }));
+  })));
 }
 game.OUT = undefined;
 function M(gm, col, par, x = 0, y = 0, z = 0, o = true, sc) {
@@ -126,4 +139,4 @@ function spr(tex, col, size, add = true, op = 1) {
 }
 // ---------- humanoid rig ----------
 
-export { FACE, Gp, M, aim, bm, bx, cap, capT, cone, ctex, cyl, geo, ico, sph, spr, tm, tmF, tor };
+export { FACE, freeGeometries, Gp, M, aim, bm, bx, cap, capT, cone, ctex, cyl, geo, ico, sph, spr, tm, tmF, tor };

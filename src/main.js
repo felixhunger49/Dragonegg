@@ -5,7 +5,7 @@ import './core/helpers.js';
 import './core/input.js';
 import './audio/audio.js';
 import './data/data.js';
-import './game/state.js';
+import './game/defaults.js';
 import './game/level.js';
 import './game/physics.js';
 import './game/particles.js';
@@ -38,6 +38,9 @@ import { txt } from './core/helpers.js';
 import { pressed, released } from './core/input.js';
 import { update } from './game/update.js';
 import { initGL } from './render/scene.js';
+import { applyQuality, loadQualitySetting, watchFps } from './core/quality.js';
+import { loadTheme } from './render/world.js';
+import { CHAPTERS } from './data/data.js';
 import { render3D } from './render/render.js';
 import { renderOverlay } from './ui/hud.js';
 
@@ -47,6 +50,7 @@ game.last = performance.now();
 game.glFailed = false;
 function loop(now) {
   game.acc += Math.min(100, now - game.last);
+  watchFps(now - game.last);
   game.last = now;
   let n = 0;
   while (game.acc >= 1000 / 60 && n < 4) {
@@ -63,6 +67,8 @@ function loop(now) {
     console.error(e);
   }
   renderOverlay();
+  if (game.qualityMsg && game.qualityMsg.t-- > 0) txt(game.qualityMsg.text, W - 4, 148, 9, '#ffe080', 'right');
+  if (game.worldLoading) txt('LADE WELT ...', W / 2, 74, 12, '#ffffff', 'center');
   if (game.glFailed) {
     dc.fillStyle = 'rgba(0,0,0,.8)';
     dc.fillRect(0, 0, hudC.width, 90);
@@ -72,7 +78,10 @@ function loop(now) {
 }
 try {
   if (typeof THREE === 'undefined') throw new Error('no three');
+  loadQualitySetting();
   initGL();
+  applyQuality();
+  loadTheme(CHAPTERS[0].theme).catch(() => {});
 } catch (e) {
   console.error(e);
   game.glFailed = true;
@@ -87,4 +96,6 @@ requestAnimationFrame(loop);
 // Handle for tests and debugging in the browser console: window.DE.game.P etc.
 import { setupChapter } from './game/flow.js';
 import { ORDER } from './data/data.js';
-window.DE = { game, setupChapter, ORDER };
+import { damageBoss } from './game/boss.js';
+import { keys } from './core/input.js';
+window.DE = { game, setupChapter, ORDER, damageBoss, pressed, keys };

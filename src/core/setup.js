@@ -1,4 +1,5 @@
 import { game } from '../state.js';
+import { pixelCap } from './quality.js';
 
 // ================= SETUP =================
 const W = 240,
@@ -41,7 +42,7 @@ function fit() {
   stageEl.style.width = w + 'px';
   stageEl.style.height = h + 'px';
   if (game.renderer) {
-    game.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75, 2400 / w));
+    game.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelCap(), 2400 / w));
     game.renderer.setSize(w, h, false);
   }
 }

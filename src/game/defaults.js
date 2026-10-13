@@ -1,6 +1,6 @@
 import { game } from '../state.js';
 
-// ================= GAME STATE =================
+// ================= GAME STATE: start values =================
 game.state = 'title';
 game.frame = 0;
 game.chapter = 0;

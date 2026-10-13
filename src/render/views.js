@@ -5,7 +5,7 @@ import { keys } from '../core/input.js';
 import { LOOKS } from '../data/data.js';
 import { part } from '../game/particles.js';
 import { ATK } from '../game/player.js';
-import { Gp, M, bm, bx, cap, cone, cyl, sph, spr, tm } from './materials.js';
+import { Gp, M, bm, bx, cap, cone, cyl, freeGeometries, sph, spr, tm } from './materials.js';
 import { makeHumanoid } from './humanoid.js';
 import { applyRig, poseHum } from './poses.js';
 import { makeAirship, makeEgg, makeFlyer, makePlane, makeScorp, makeWolf } from './rigs.js';
@@ -557,8 +557,8 @@ function syncGhosts() {
     v.mat.opacity = gh.life / gh.max * 0.4;
   }
 }
-// ghost views need release instead of dispose
-// ghost views need release instead of dispose
+// Views of entities that left the screen are removed; their own geometries and materials are freed.
+// Pooled views (ghosts) are released for reuse instead.
 
 function cleanupViews() {
   game.views = game.views.filter(o => {
@@ -568,7 +568,10 @@ function cleanupViews() {
       if (o._v.release) {
         o._v.init = false;
         o._v.release();
-      } else if (o._v.mats) o._v.mats.forEach(m => m.dispose());
+      } else {
+        if (o._v.mats) o._v.mats.forEach(m => m.dispose());
+        freeGeometries(o._v.root);
+      }
       o._v = null;
       return false;
     }
