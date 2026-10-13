@@ -79,6 +79,13 @@ Dateiname wie in der Tabelle oben, z. B. `kurikin.glb`.
 Entweder die `.glb`-Datei einfach **an Claude im Chat schicken** (am besten auch die `.blend`-Datei), oder auf GitHub im Ordner `src/models/` hochladen
 (**Add file → Upload files**). Nach dem Hochladen baut GitHub die Webseite automatisch neu.
 
+## Fertige Modelle ohne Knochen (z. B. aus einem KI-Generator)
+
+Ein fertiges Modell mit Textur, aber ohne Knochen (oft auf einem Sockel) kannst du einfach an Claude schicken.
+`blender/convert_model.py` macht daraus eine Spielfigur: Sockel weg, auf etwa 7.000 Ecken verkleinern,
+Knochen einsetzen, die Haare bekommen das Material `hair` (damit sie im Spiel schwarz und im Super-Modus golden werden).
+Die Gelenkpunkte werden pro Modell einmal ausgemessen und oben im Skript eingetragen. So ist der jetzige Son Goki entstanden.
+
 ## Wie die Figuren gebaut sind
 
 `blender/build_figures.py` erzeugt die Figuren komplett per Skript (Bausteine in `blender/figlib.py`). Der Körper ist ein Strichmännchen mit **Skin-Modifier** und **Subdivision Surface**, die Kleidung entsteht durch eingefärbte Flächen. Dazu kommen einzelne Teile für Haare, Gesicht, Stiefel, Fäuste, Schwanz und Stab.

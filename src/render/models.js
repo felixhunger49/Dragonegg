@@ -102,7 +102,8 @@ function toonFor(mat, L) {
   if (n === 'hair') return tm(L.hc || '#1c1a28');
   if (typeof L[n] === 'string' && L[n][0] === '#') return tm(L[n]);
   if (mat.map) {
-    const t = new THREE.MeshToonMaterial({ color: mat.color, map: mat.map, gradientMap: game.GRAD });
+    mat.map.encoding = THREE.LinearEncoding; // the game renders without colour management, like its hex colours
+    const t = new THREE.MeshToonMaterial({ color: mat.color, map: mat.map, normalMap: mat.normalMap, gradientMap: game.GRAD });
     t.userData.shared = true;
     return mat.userData.toon || (mat.userData.toon = t);
   }
@@ -138,7 +139,8 @@ function makeModelRig(L) {
   for (const o of skinned) if (o.skeleton !== sk) o.bind(sk, o.bindMatrix);
   for (const o of skinned) {
     if (!o.userData.line) continue;
-    const ol = new THREE.SkinnedMesh(o.geometry, outlineMat(0.026 / pr.ns));
+    // textured models have fine sculpted detail: a thinner outline keeps it from showing through creases
+    const ol = new THREE.SkinnedMesh(o.geometry, outlineMat((o.material.map ? 0.014 : 0.026) / pr.ns));
     ol.bind(sk, o.bindMatrix);
     ol.frustumCulled = false;
     o.parent.add(ol);

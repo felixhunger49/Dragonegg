@@ -445,6 +445,7 @@ FIGS = {'goki': goki, 'kurikin': kurikin, 'joshi': joshi, 'tjamtschu': tjamtschu
 
 if __name__ == '__main__':
     args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
-    for name in (args or list(FIGS)):
+    # goki now comes from convert_model.py (Felix's model); build_figures.py goki still makes the old one
+    for name in (args or [n for n in FIGS if n != 'goki']):
         F = FIGS[name]()
         F.export(os.path.join(HERE, '..', 'src', 'models', name + '.glb'), os.path.join(HERE, name + '.blend'))

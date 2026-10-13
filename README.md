@@ -25,7 +25,7 @@ src/
   ui/            Lebensleisten, Texte, Menüs
   worlds/        eine Datei pro Welt (Wald, Wüste, Basis, Schloss, Himmel)
   models/        Figuren aus Blender (.glb)
-blender/         Blender-Dateien und das Skript, das Goki baut
+blender/         Blender-Dateien und die Skripte, die die Figuren bauen
 ```
 
 Damit das Spiel wachsen kann, ohne den Browser zu überlasten:

@@ -391,7 +391,7 @@ class Fig:
         return Vector((x, -z, y))
 
     # ---------- skinning + export ----------
-    def export(self, out_glb, out_blend):
+    def export(self, out_glb, out_blend, texcoords=False):
         for o in bpy.context.view_layer.objects:
             o.select_set(False)
         body = getattr(self, 'bodyob', None)
@@ -418,4 +418,4 @@ class Fig:
         bpy.ops.wm.save_as_mainfile(filepath=out_blend)
         bpy.ops.export_scene.gltf(filepath=out_glb, export_format='GLB', export_yup=True, export_skins=True,
                                   export_animations=False, export_apply=False, export_materials='EXPORT', use_selection=False,
-                                  export_texcoords=False)
+                                  export_texcoords=texcoords, export_image_format='JPEG', export_jpeg_quality=85)
