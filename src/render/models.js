@@ -17,7 +17,7 @@ const BONES = {
   tail: 'tail'
 };
 // small face details get no outline
-const NO_OUTLINE = /^(eye|pupil|shine|brow|mouth|symbol|lid)/i;
+const NO_OUTLINE = /^(eye|pupil|shine|brow|mouth|symbol|lid|detail)/i;
 const LIMB = new Set(['upperarm_L', 'forearm_L', 'upperarm_R', 'forearm_R', 'thigh_L', 'shin_L', 'thigh_R', 'shin_R']);
 const FILES = import.meta.glob('../models/*.glb', { query: '?url', import: 'default', eager: true });
 const MODELS = {}, PREP = {};

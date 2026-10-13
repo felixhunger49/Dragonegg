@@ -58,7 +58,7 @@ Wenn ein Material so heißt, nimmt das Spiel die Farbe der Figur aus dem Spiel. 
 `hair` (Haare), `skin` (Haut), `gi` (Anzug), `belt` (Gürtel), `boots` (Stiefel), `pants` (Hose), `wrist` (Armbänder), `under` (Unterhemd)
 
 Alle anderen Materialien behalten die Farbe, die du in Blender einstellst (**Base Color**).
-Materialien, deren Name mit `eye`, `pupil`, `shine`, `brow`, `mouth`, `symbol` oder `lid` anfängt, bekommen **keinen schwarzen Umriss**. Das ist für kleine Gesichtsteile gedacht.
+Materialien, deren Name mit `eye`, `pupil`, `shine`, `brow`, `mouth`, `symbol`, `lid` oder `detail` anfängt, bekommen **keinen schwarzen Umriss**. Das ist für kleine Gesichtsteile gedacht.
 Texturen gehen auch, einfache Farben sehen im Spiel-Stil aber meist besser aus.
 
 ## 5. Exportieren
@@ -79,7 +79,7 @@ Dateiname wie in der Tabelle oben, z. B. `kurikin.glb`.
 Entweder die `.glb`-Datei einfach **an Claude im Chat schicken** (am besten auch die `.blend`-Datei), oder auf GitHub im Ordner `src/models/` hochladen
 (**Add file → Upload files**). Nach dem Hochladen baut GitHub die Webseite automatisch neu.
 
-## Wie Goki gebaut ist
+## Wie die Figuren gebaut sind
 
-`blender/build_goki.py` erzeugt Goki komplett per Skript. Der Körper ist ein Strichmännchen mit **Skin-Modifier** und **Subdivision Surface**, die Kleidung entsteht durch eingefärbte Flächen. Dazu kommen einzelne Teile für Haare, Gesicht, Stiefel, Fäuste, Schwanz und Stab.
-In `goki.blend` kannst du alles direkt von Hand weiterbearbeiten und dann wie oben exportieren.
+`blender/build_figures.py` erzeugt die Figuren komplett per Skript (Bausteine in `blender/figlib.py`). Der Körper ist ein Strichmännchen mit **Skin-Modifier** und **Subdivision Surface**, die Kleidung entsteht durch eingefärbte Flächen. Dazu kommen einzelne Teile für Haare, Gesicht, Stiefel, Fäuste, Schwanz und Stab.
+In den `.blend`-Dateien kannst du alles direkt von Hand weiterbearbeiten und dann wie oben exportieren.
