@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dragoneggs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+/* Layout: one 3:2 game screen (3D canvas + pixel HUD overlay) centered on a console frame, touch pad underneath on phones */
+:root{
+  --bg:#12101c; --frame:#1d1a2c; --edge:#3a3456; --fg:#f2ecdc; --muted:#9a93b4; --accent:#f59a1c;
+  --btn:rgba(255,255,255,.12); --btnEdge:rgba(255,255,255,.34); --btnOn:rgba(245,154,28,.55);
+  --pixel:"Press Start 2P", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--pixel);margin:0;padding-inline:16px;padding-block:8px;box-sizing:border-box;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+#wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px}
+#stage{position:relative;background:#000;border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 6px var(--frame),0 10px 40px rgba(0,0,0,.6);overflow:hidden;max-width:100%}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hud{image-rendering:pixelated}
+#fsBtn{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:3;background:rgba(0,0,0,.45);color:var(--fg);border:2px solid var(--btnEdge);border-radius:8px;font-family:var(--pixel);font-size:8px;padding:5px 8px;cursor:pointer;opacity:.6}
+#fsBtn:hover,#fsBtn:focus-visible{opacity:1;border-color:var(--accent)}
+body.fs{padding:0;background:#000}
+body.fs #wrap{gap:0}
+body.fs #stage{border:none;border-radius:0;box-shadow:none}
+body.fs #hint{display:none}
+#hint{font-size:9px;color:var(--muted);text-align:center;line-height:1.8;max-width:760px}
+#hint b{color:var(--accent);font-weight:normal}
+#pad{display:none;width:100%;max-width:760px;justify-content:space-between;align-items:center;gap:12px}
+body.touch #pad{display:flex}
+body.touch #hint{display:none}
+.dpad{display:grid;grid-template-columns:repeat(3,50px);grid-template-rows:repeat(3,50px);gap:4px}
+.btns{display:grid;grid-template-columns:repeat(2,62px);gap:8px}
+.b{background:var(--btn);border:2px solid var(--btnEdge);border-radius:12px;color:var(--fg);font-family:var(--pixel);font-size:8px;display:flex;align-items:center;justify-content:center;touch-action:none}
+.b.on{background:var(--btnOn)}
+.btns .b{height:54px;border-radius:50%;width:62px}
+.mid{display:flex;flex-direction:column;gap:8px}
+.mid .b{height:30px;padding:0 10px;border-radius:8px}
+@media (orientation:landscape) and (pointer:coarse){
+  body.touch #pad{position:fixed;left:0;right:0;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-width:none;padding-inline:16px;box-sizing:border-box;pointer-events:none}
+  body.touch #pad .b{pointer-events:auto;opacity:.72}
+}
+@media (prefers-reduced-motion:reduce){.b{transition:none}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage"><canvas id="gl"></canvas><canvas id="hud" width="960" height="640" aria-label="Dragoneggs Spielfeld"></canvas><button id="fsBtn" type="button" title="Vollbild (Taste B)">⛶ VOLLBILD</button></div>
+  <div id="hint"><b>Pfeile</b> laufen · <b>▼</b> ducken · <b>Z/Leertaste</b> springen · <b>X</b> Schlag · <b>S</b> Tritt · <b>C</b> Ki (halten = Spezial) · <b>V</b> Dash · <b>F</b> Super (Ki voll) · <b>B</b> Vollbild · <b>Enter</b> Pause · <b>M</b> Ton</div>
+  <div id="pad">
+    <div class="dpad">
+      <span></span><div class="b" data-k="up">▲</div><span></span>
+      <div class="b" data-k="left">◀</div><span></span><div class="b" data-k="right">▶</div>
+      <span></span><div class="b" data-k="down">▼</div><span></span>
+    </div>
+    <div class="mid"><div class="b" data-k="start">PAUSE</div><div class="b" data-k="dash">DASH</div><div class="b" data-k="super">SUPER</div></div>
+    <div class="btns">
+      <div class="b" data-k="ki">KI</div><div class="b" data-k="atk">SCHLAG</div>
+      <div class="b" data-k="kick">TRITT</div><div class="b" data-k="jump">SPRUNG</div>
+    </div>
+  </div>
+</div>
+<script type="module" src="/src/main.js"></script>
+
+</body>
+</html>
