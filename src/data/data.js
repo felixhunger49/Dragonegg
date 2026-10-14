@@ -20,6 +20,7 @@ const LOOKS = {
     boots: '#2848c0',
     hair: 'bald',
     short: true,
+    size: 0.9,
     wrist: '#2848c0',
     under: '#2848c0',
     sym: true

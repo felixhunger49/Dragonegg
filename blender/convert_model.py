@@ -1,11 +1,11 @@
-# Turns a finished, textured model (e.g. from an AI 3D generator: one mesh, no bones, often on a stand)
+# Turns a finished, textured or vertex-coloured model (e.g. from an AI 3D generator: one mesh, no bones, often on a stand)
 # into a game figure: removes the stand, reduces the vertex count, adds the game's bones with automatic
 # weights, gives the hair its own "hair" material (so the game can colour it, e.g. gold for Super) and adds
 # extra parts (tail, staff). Joint positions are measured per model and listed in MODELS below.
 #   python blender/convert_model.py goki "/path/to/son goki.glb"
 import bpy, bmesh, math, os, sys
 import numpy as np
-from mathutils import Vector
+from mathutils import Matrix, Vector
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from figlib import Fig
 
@@ -21,6 +21,14 @@ MODELS = {
         P=(.06, -.005, .35), K=(.073, 0, .21), A=(.10, .008, .075), T=(.11, -.075, .02),
         colors={'hair': '#e8c860', 'tail': '#8a5a30', 'staff': '#c81818', 'rim': '#3a5ad8'},
         extras='goki'),
+    # ComfyUI model with vertex colours, standing on rocks: cut below the trouser hems, shoes are rebuilt
+    'kurikin': dict(
+        cut=-.355, floor=-.49, faces=14000, hair=False,
+        hips=-.08, torso=(0, .24), head=(.27, .50), neck=.26, tilt=(-15, -.02),
+        S=(.16, .03, .20), E=(.20, .05, .065), W=(.265, -.05, .075), H=(.30, -.11, .07),
+        P=(.08, .02, -.10), K=(.16, 0, -.24), A=(.215, .03, -.40), T=(.25, -.10, -.47),
+        colors={'shoe': '#1e2238', 'sock': '#d0d0d8'},
+        extras='shoes'),
 }
 
 def load(src, cfg):
@@ -36,6 +44,9 @@ def load(src, cfg):
     bm.from_mesh(ob.data)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)  # generators split vertices along UV seams
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < cfg['cut']], context='VERTS')  # the stand
+    # close the openings left by the cut (e.g. trouser hems)
+    rim = [e for e in bm.edges if e.is_boundary and min(v.co.z for v in e.verts) < cfg['cut'] + .01]
+    bmesh.ops.holes_fill(bm, edges=rim, sides=0)
     # keep only big connected pieces (crumbs left over from the stand)
     lab, parts = {}, []
     for v in bm.verts:
@@ -53,13 +64,21 @@ def load(src, cfg):
                     st.append(o)
         parts.append(comp)
     bmesh.ops.delete(bm, geom=[v for p in parts if len(p) < 2000 for v in p], context='VERTS')
+    bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 4])  # filled openings
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(ob.data)
     bm.free()
+    ob.data.validate()
     bpy.context.view_layer.objects.active = ob
     ob.select_set(True)
     m = ob.modifiers.new('Decimate', 'DECIMATE')
     m.ratio = cfg['faces'] / len(ob.data.polygons)
     bpy.ops.object.modifier_apply(modifier='Decimate')
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(ob.data)
+    bm.free()
     for p in ob.data.polygons:
         p.use_smooth = True
     return ob
@@ -144,10 +163,10 @@ def split_hair(ob, img, cfg, k):
     bm.free()
     print('hair faces', n)
 
-def raise_head(ob, cfg, k):
+def raise_head(ob, cfg, k, fl=0):
     """statues often look down; turn the head up (degrees, around the neck) so the face shows in the side view"""
     a, y = cfg['tilt']
-    z0, z1 = (cfg['neck'] - .01) * k, (cfg['neck'] + .03) * k
+    z0, z1 = (cfg['neck'] - .01 - fl) * k, (cfg['neck'] + .03 - fl) * k
     for v in ob.data.vertices:
         w = min(1, max(0, (v.co.z - z0) / (z1 - z0)))
         if not w:
@@ -157,8 +176,11 @@ def raise_head(ob, cfg, k):
         v.co.y = y * k + dy * math.cos(r) - dz * math.sin(r)
         v.co.z = z0 + dy * math.sin(r) + dz * math.cos(r)
 
-def skeleton(F, cfg, k, tail):
-    J = {n: Vector(cfg[n]) * k for n in 'SEWHPKAT'}
+def joints(cfg, k, fl):
+    return {n: (Vector(cfg[n]) - Vector((0, 0, fl))) * k for n in 'SEWHPKAT'}
+
+def skeleton(F, cfg, k, tail, fl=0):
+    J = joints(cfg, k, fl)
     arm = bpy.data.armatures.new(F.name + 'Rig')
     F.rig = rig = F.link(bpy.data.objects.new(F.name + 'Rig', arm))
     bpy.context.view_layer.objects.active = rig
@@ -170,7 +192,7 @@ def skeleton(F, cfg, k, tail):
         if parent:
             b.parent = eb[parent]
             b.use_connect = connect
-    z = lambda a: (0, 0, a * k)
+    z = lambda a: (0, 0, (a - fl) * k)
     bone('hips', z(cfg['hips']), z(cfg['torso'][0]))
     bone('torso', z(cfg['torso'][0]), z(cfg['torso'][1]), 'hips')
     bone('head', z(cfg['head'][0]), z(cfg['head'][1]), 'torso')
@@ -193,20 +215,39 @@ def goki_extras(F):
     for t in (0, 1.17):
         F.cone('StaffCap', .034, .034, .04, a + d * t, d, 10, 'rim', 'torso')
 
+def shoes(F, cfg, k, fl):
+    """simple shoes and socks for models whose feet were lost with the stand"""
+    J = joints(cfg, k, fl)
+    hem = (cfg['cut'] - fl) * k
+    for s, sd in ((1, '_L'), (-1, '_R')):
+        m = lambda v: Vector((v.x * s, v.y, v.z))
+        A, T, K = m(J['A']), m(J['T']), m(J['K'])
+        up = (K - A).normalized()
+        # dark leg wrap from the shoe up into the trousers, a light band at the ankle, a round kung-fu shoe
+        F.cone('Wrap', .058, .064, hem + .04 - A.z + .06, A - up * .06, up, 12, 'shoe', 'shin' + sd)
+        F.cone('Band', .066, .066, .03, A + up * .02, up, 12, 'sock', 'shin' + sd)
+        d = Vector((T.x - A.x, T.y - A.y, 0)).normalized()
+        rot = Vector((0, 1, 0)).rotation_difference(d).to_matrix()
+        F.sphere('Shoe', 1, Vector((A.x, A.y, .075)) + d * .07, (.085, .18, .08), 16, 10, 'shoe', 'foot' + sd, rot)
+
 def convert(name, src):
     cfg = MODELS[name]
     F = Fig(name, cfg['colors'])
     ob = load(src, cfg)
-    k = .875 / cfg['hips']  # game units: hips at 0.875
-    ob.data.transform(np.diag([k, k, k, 1]).tolist())
+    fl = cfg.get('floor', 0)
+    k = .875 / (cfg['hips'] - fl)  # game units: feet at 0, hips at 0.875
+    ob.data.transform(Matrix.Translation((0, 0, -fl * k)) @ Matrix.Scale(k, 4))
     img = textures(ob, cfg)
-    split_hair(ob, img, cfg, k)
+    if cfg.get('hair', True):
+        split_hair(ob, img, cfg, k)
     if cfg.get('tilt'):
-        raise_head(ob, cfg, k)
+        raise_head(ob, cfg, k, fl)
     tail = ((0, .12, .9), (0, .3, .78)) if cfg.get('extras') == 'goki' else None
-    skeleton(F, cfg, k, tail)
+    skeleton(F, cfg, k, tail, fl)
     if cfg.get('extras') == 'goki':
         goki_extras(F)
+    if cfg.get('extras') == 'shoes':
+        shoes(F, cfg, k, fl)
     for im in bpy.data.images:
         im.pack()
     F.bodyob = ob

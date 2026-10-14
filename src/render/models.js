@@ -29,7 +29,9 @@ function loadModels(keys) {
   const list = Object.entries(FILES).map(([p, url]) => [p.split('/').pop().replace(/\.glb$/, ''), url]).filter(([k]) => !keys || keys.includes(k));
   return Promise.all(list.map(([key, url]) => pending[key] || (pending[key] = loader.loadAsync(url).then(g => {
     g.scene.traverse(o => {
-      if (o.geometry) o.geometry.userData.shared = true;
+      if (!o.geometry) return;
+      o.geometry.userData.shared = true;
+      if (o.material && o.material.vertexColors) srgbColors(o.geometry);
     });
     MODELS[key] = g.scene;
     if (LOOKS[key]) LOOKS[key].model = key;
@@ -103,11 +105,29 @@ function toonFor(mat, L) {
   if (typeof L[n] === 'string' && L[n][0] === '#') return tm(L[n]);
   if (mat.map) {
     mat.map.encoding = THREE.LinearEncoding; // the game renders without colour management, like its hex colours
-    const t = new THREE.MeshToonMaterial({ color: mat.color, map: mat.map, normalMap: mat.normalMap, gradientMap: game.GRAD });
+    const t = new THREE.MeshToonMaterial({ color: mat.color, map: mat.map, normalMap: mat.normalMap, side: mat.side, gradientMap: game.GRAD });
+    t.userData.shared = true;
+    return mat.userData.toon || (mat.userData.toon = t);
+  }
+  if (mat.vertexColors) {
+    const t = new THREE.MeshToonMaterial({ color: mat.color, vertexColors: true, side: mat.side, gradientMap: game.GRAD });
     t.userData.shared = true;
     return mat.userData.toon || (mat.userData.toon = t);
   }
   return tm('#' + mat.color.clone().convertLinearToSRGB().getHexString());
+}
+// vertex colours are stored linear; the game draws without colour management, so turn them back into sRGB once
+function srgbColors(g) {
+  const c = g.attributes.color;
+  if (!c || g.userData.srgb) return;
+  const a = c.array, n = c.normalized, mx = a instanceof Uint8Array ? 255 : a instanceof Uint16Array ? 65535 : 1;
+  for (let i = 0; i < a.length; i++) {
+    if (c.itemSize === 4 && i % 4 === 3) continue;
+    const v = (n ? a[i] / mx : a[i]);
+    const s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+    a[i] = n ? Math.round(s * mx) : s;
+  }
+  g.userData.srgb = true;
 }
 
 // Build a rig with the same parts as makeHumanoid (root, inner, body, torso, head, aL ...), whose empty
@@ -140,7 +160,7 @@ function makeModelRig(L) {
   for (const o of skinned) {
     if (!o.userData.line) continue;
     // textured models have fine sculpted detail: a thinner outline keeps it from showing through creases
-    const ol = new THREE.SkinnedMesh(o.geometry, outlineMat((o.material.map ? 0.014 : 0.026) / pr.ns));
+    const ol = new THREE.SkinnedMesh(o.geometry, outlineMat((o.material.map || o.material.vertexColors ? 0.014 : 0.026) / pr.ns));
     ol.bind(sk, o.bindMatrix);
     ol.frustumCulled = false;
     o.parent.add(ol);

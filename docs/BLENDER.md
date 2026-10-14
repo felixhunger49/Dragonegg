@@ -84,7 +84,7 @@ Entweder die `.glb`-Datei einfach **an Claude im Chat schicken** (am besten auch
 Ein fertiges Modell mit Textur, aber ohne Knochen (oft auf einem Sockel) kannst du einfach an Claude schicken.
 `blender/convert_model.py` macht daraus eine Spielfigur: Sockel weg, auf etwa 7.000 Ecken verkleinern,
 Knochen einsetzen, die Haare bekommen das Material `hair` (damit sie im Spiel schwarz und im Super-Modus golden werden).
-Die Gelenkpunkte werden pro Modell einmal ausgemessen und oben im Skript eingetragen. So ist der jetzige Son Goki entstanden.
+Die Gelenkpunkte werden pro Modell einmal ausgemessen und oben im Skript eingetragen. So sind der jetzige Son Goki und Kurikin entstanden. Modelle mit Farben ohne Textur (z. B. aus ComfyUI) gehen auch; stehen die Füße im Sockel, baut das Skript neue Schuhe.
 
 ## Wie die Figuren gebaut sind
 
